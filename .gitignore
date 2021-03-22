@@ -1,0 +1,7 @@
+cmake-*
+CMakeFiles
+Testing
+*.cmake
+CMakeCache.txt
+hw2*
+Makefile
