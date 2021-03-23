@@ -38,8 +38,11 @@ jobs:
       - name: Run gtest
         run: make test
 
-      - name: Run Valgrind
-        run: valgrind $VALGRIND_OPTS ./$EXEC_NAME
+      - name: Run Valgrind on target: multi
+        run: valgrind $VALGRIND_OPTS ./hw2_multi
+
+      - name: Run Valgrind on target: single
+        run: valgrind $VALGRIND_OPTS ./hw2_single
 
       - name: Single-threaded execution time
         run: time ./hw2_single
