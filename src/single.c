@@ -79,33 +79,34 @@ char find_most_common_sequence_char(const char *data, const size_t data_length) 
         max = length;
     }
 
-//    char *representatives = (char*)calloc(max, sizeof(char));
-//
-//    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-//        struct Node *nd = freq[i].first;
-//        while (nd != NULL) {
-//            representatives[nd->val - 1] = 'a' + i;
-//            nd = nd->next;
-//        }
-//    }
-//
-//    for (size_t i = 0; i < max; ++i) {
-//        printf("'%c' represents %zu repetitions\n", representatives[i], i + 1);
-//    }
+    size_t *frequencies = (size_t *)calloc(max, sizeof(size_t)); //Частоты
 
+    size_t max_freq = 0;
+    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {  //Ищем представителя для каждой длины, получаем разные ответы
+        struct Node *nd = freq[i].first;
+        while (nd != NULL) {
+            ++frequencies[nd->val - 1];
+            if (frequencies[nd->val - 1] > frequencies[max_freq]) {
+                max_freq = nd->val - 1;
+            }
+            nd = nd->next;
+        }
+    }
+
+    ++max_freq; //Из-за сдвига индексов
+
+    printf("Max: %zu\n", max_freq);
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-
+        printf("Letter %c\n", 'a' + i);
         struct Node *nd = freq[i].first;
         while(nd != NULL) {
-            if (nd->val == max) {
+            printf("nd->val: %zu\n", nd->val);
+            if (nd->val == max_freq) {
                 return 'a' + i;
             }
             nd = nd->next;
         }
     }
 
-//    printf("Длинное: %zu", max);
-//    char answer = representatives[max-1];
-//    return answer;
     return 0;
 }

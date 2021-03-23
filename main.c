@@ -31,17 +31,17 @@ char *generate(size_t size) {
 }
 
 int main() {
-//    size_t DATA_SIZE = 25;
-//    char *data = generate(DATA_SIZE);
-    size_t DATA_SIZE = 13;
-    char *data = "aaabbbcccddee";
+    size_t DATA_SIZE = 1000000;
+    char *data = generate(DATA_SIZE);
+//    size_t DATA_SIZE = 52;
+//    char *data = "aaaaaabbhhhddkkkkkkuuuujjjjhhhggppppppppppppllpppppp";
     time_t single_start, single_end, multi_start, multi_end;
 
     time(&multi_start);
     char result = find_most_common_sequence_char_multi(data, DATA_SIZE);
     time(&multi_end);
     time(&single_start);
-    char result2 = find_most_common_sequence_char(data, DATA_SIZE);
+    char result2 = find_most_common_sequence_char(data, DATA_SIZE); //выдает первый
     time(&single_end);
 //    printf("Generated string: %s\n", data);
 

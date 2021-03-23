@@ -105,11 +105,13 @@ void *thread(void *parcel_node) {
 
     char *representatives = (char*)calloc(max, sizeof(char)); //Представители той или иной длины
 
-    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {  //Ищем представителя для каждой длины
+    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {  //Ищем представителя для каждой длины, получаем разные ответы
         struct Node *nd = freq[i].first;
         while (nd != NULL) {
             ++frequencies[nd->val - 1];
-            representatives[nd->val - 1] = 'a' + i;
+            if (!representatives[nd->val - 1]) {
+                representatives[nd->val - 1] = 'a' + i;
+            }
             nd = nd->next;
         }
     }
