@@ -11,7 +11,7 @@ TEST(struct_List, add_element_and_free) {
     ASSERT_EQ(freq_list->first->val, (size_t)2);
     list_free(freq_list);
     auto die = [](List *lst)->size_t { return lst->first->val; };
-    ASSERT_EXIT((die(freq_list),exit(0)), ::testing::KilledBySignal(SIGSEGV), ".*");
+    ASSERT_EXIT((die(freq_list), exit(0)), ::testing::KilledBySignal(SIGSEGV), ".*");
 }
 
 TEST(find_most_common_sequence, seq1) {
