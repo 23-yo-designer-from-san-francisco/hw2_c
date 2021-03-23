@@ -1,10 +1,10 @@
 #include "../include/multi.h"
-#include <stdio.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
 #define ALPHABET_LENGTH 26
 #define FIRST_CHAR 'a'
+#define MALLOC_ERROR 0
 
 struct Parcel_node {
     size_t left;
@@ -88,6 +88,9 @@ void parcel_list_free(struct Parcel_list *pl) {
 
 void *thread(void *parcel_node) {
     struct Parcel_node *parcel = (struct Parcel_node *)parcel_node;
+    if (!parcel) {
+        pthread_exit(NULL);
+    }
 
     // Список вида
     // freq[0] .... freq[ALPHABET_LENGTH - 1]
@@ -95,6 +98,10 @@ void *thread(void *parcel_node) {
     //   3 -> 4 -> 3 -> ... // 'a' встретилась 3 раза, затем 4 раза, затем 3 раза
 
     struct List *freq = (struct List *) malloc(sizeof(struct List) * ALPHABET_LENGTH);
+    if (!freq) {
+        free(parcel);
+        pthread_exit(NULL);
+    }
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
         struct List temp;
         temp.first = NULL;
@@ -130,8 +137,19 @@ void *thread(void *parcel_node) {
     }
 
     size_t *frequencies = (size_t *)calloc(max, sizeof(size_t));
+    if (!frequencies) {
+        free(parcel);
+        list_free(freq);
+        pthread_exit(NULL);
+    }
 
     char *representatives = (char*)calloc(max, sizeof(char));  // Представители той или иной длины
+    if (!representatives) {
+        free(parcel);
+        list_free(freq);
+        free(frequencies);
+        pthread_exit(NULL);
+    }
 
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
         struct Node *nd = freq[i].first;
@@ -147,6 +165,13 @@ void *thread(void *parcel_node) {
     }
 
     struct Result *res = (struct Result *)malloc(sizeof(struct Result));
+    if (!res) {
+        free(parcel);
+        list_free(freq);
+        free(frequencies);
+        free(representatives);
+        pthread_exit(NULL);
+    }
     res->representatives = representatives;
     res->length = max;
     res->frequencies = frequencies;
@@ -161,11 +186,11 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
     size_t left_idx = 0;
     size_t right_idx;
 
-    struct Parcel_list pl;
+    struct Parcel_list pl;  // "Посылки" для потоков
     pl.first = NULL;
     pl.last = NULL;
 
-    while (idle_cpus != 0 && left_idx < data_length) {  // делит на ядра
+    while (idle_cpus != 0 && left_idx < data_length) {  // делит на потоки (кол-во ядер)
         right_idx = (data_length - left_idx) / idle_cpus + left_idx;
         if (right_idx < data_length) {
             char last_char = data[right_idx];
@@ -177,6 +202,9 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
             }
             if (pl.first == NULL) {
                 pl.first = (struct Parcel_node *) malloc(sizeof(struct Parcel_node));
+                if (!pl.first) {
+                    return MALLOC_ERROR;
+                }
                 pl.first->next = NULL;
                 pl.first->left = left_idx;
                 pl.first->right = right_idx;
@@ -184,10 +212,15 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
                 pl.last = pl.first;
             } else {
                 pl.last->next = (struct Parcel_node *) malloc(sizeof(struct Parcel_node));
+                if (!pl.last->next) {
+                    parcel_list_free(&pl);
+                    return MALLOC_ERROR;
+                }
                 pl.last = pl.last->next;
                 pl.last->left = left_idx;
                 pl.last->right = right_idx;
                 pl.last->str = data;
+                pl.last->next = NULL;
             }
             left_idx = right_idx + 1;
             --idle_cpus;
@@ -202,7 +235,16 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
     iter = pl.first;
 
     struct Result **results = (struct Result **)malloc(sizeof(struct Result *) * chunks);
+    if (!results) {
+        parcel_list_free(&pl);
+        return MALLOC_ERROR;
+    }
     pthread_t *threads = (pthread_t *)malloc(sizeof(pthread_t) * chunks);
+    if (!threads) {
+        parcel_list_free(&pl);
+        free(results);
+        return MALLOC_ERROR;
+    }
 
     for (size_t i = 0; i < chunks; ++i) {
         pthread_create(&threads[i], NULL, thread, (void *)iter);
@@ -215,12 +257,24 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
 
     size_t max_length = 0;
     for (size_t i = 0; i < chunks; ++i) {
+        if (!results[i]) {  // Произошла ошибка в одном из потоков
+            parcel_list_free(&pl);
+            free(results);
+            thread_result_free(results, chunks);
+            return MALLOC_ERROR;
+        }
         if (results[i]->length > max_length) {
             max_length = results[i]->length;
         }
     }
 
     size_t *total = (size_t *)calloc(max_length, sizeof(size_t));
+    if (!total) {
+        parcel_list_free(&pl);
+        thread_result_free(results, chunks);
+        free(threads);
+        return MALLOC_ERROR;
+    }
     for (size_t i = 0; i < chunks; ++i) {
         for (size_t j = 0; j < results[i]->length; ++j) {
             total[j] += results[i]->frequencies[j];
