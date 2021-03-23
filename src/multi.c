@@ -1,4 +1,4 @@
-#include "../include/multi.h"
+#include "multi.h"
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
@@ -9,7 +9,7 @@
 struct Parcel_node {
     size_t left;
     size_t right;
-    char *str;
+    const char *str;
     struct Parcel_node *next;
 };
 
@@ -181,7 +181,7 @@ void *thread(void *parcel_node) {
     pthread_exit((void *)res);
 }
 
-char find_most_common_sequence_char(char *data, size_t data_length) {
+unsigned char find_most_common_sequence_char(const char *data, const size_t data_length) {
     int idle_cpus = get_nprocs();
     size_t left_idx = 0;
     size_t right_idx;
@@ -190,15 +190,16 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
     pl.first = NULL;
     pl.last = NULL;
 
-    while (idle_cpus != 0 && left_idx < data_length) {  // делит на потоки (кол-во ядер)
+    _Bool reached_end = 0;
+    while (idle_cpus != 0 && left_idx < data_length && !reached_end) {  // делит на потоки (кол-во ядер)
         right_idx = (data_length - left_idx) / idle_cpus + left_idx;
         if (right_idx < data_length) {
+            reached_end = 1;
+            right_idx = data_length - 1;
+        }
             char last_char = data[right_idx];
             while (right_idx + 1 < data_length && data[right_idx + 1] == last_char) {
                 ++right_idx;
-            }
-            if (right_idx == data_length) {
-                --right_idx;
             }
             if (pl.first == NULL) {
                 pl.first = (struct Parcel_node *) malloc(sizeof(struct Parcel_node));
@@ -224,9 +225,6 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
             }
             left_idx = right_idx + 1;
             --idle_cpus;
-        } else {
-            break;
-        }
     }
 
     size_t chunks = get_nprocs() - idle_cpus;
@@ -268,8 +266,8 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
         }
     }
 
-    size_t *total = (size_t *)calloc(max_length, sizeof(size_t));
-    if (!total) {
+    size_t *total_occurrencies = (size_t *)calloc(max_length, sizeof(size_t));
+    if (!total_occurrencies) {
         parcel_list_free(&pl);
         thread_result_free(results, chunks);
         free(threads);
@@ -277,36 +275,29 @@ char find_most_common_sequence_char(char *data, size_t data_length) {
     }
     for (size_t i = 0; i < chunks; ++i) {
         for (size_t j = 0; j < results[i]->length; ++j) {
-            total[j] += results[i]->frequencies[j];
+            total_occurrencies[j] += results[i]->frequencies[j];
         }
     }
 
     size_t max_result = 0;
     for (size_t i = 0; i < max_length; ++i) {
-        if (total[i] > total[max_result]) {
+        if (total_occurrencies[i] > total_occurrencies[max_result]) {
             max_result = i;
         }
     }
 
+    unsigned char res = 255;
     for (size_t i = 0; i < chunks; ++i) {
-        if (max_result <= results[i]->length && results[i]->representatives[max_result] != 0) {
-            char res = results[i]->representatives[max_result];
-
-            thread_result_free(results, chunks);
-            parcel_list_free(&pl);
-            free(total);
-            free(threads);
-            free(results);
-
-            return res;
+        if (max_result <= results[i]->length && results[i]->representatives[max_result] != 0 && results[i]->representatives[max_result] < res) {
+            res = results[i]->representatives[max_result];
         }
     }
 
     thread_result_free(results, chunks);
     parcel_list_free(&pl);
-    free(total);
+    free(total_occurrencies);
     free(threads);
     free(results);
 
-    return 0;
+    return res;
 }

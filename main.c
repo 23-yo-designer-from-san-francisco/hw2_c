@@ -27,13 +27,16 @@ char *generate(size_t size) {
     return data;
 }
 
-int main() {
-    char *data = generate(DATA_SIZE);
-
-    char result = find_most_common_sequence_char(data, DATA_SIZE);
-
+int main(int argc, char** argv) {
+    char result = '\0';
+    if (argc > 1) {
+        result = find_most_common_sequence_char(argv[1], strlen(argv[1]));
+    } else {
+        char *data = generate(DATA_SIZE);
+        result = find_most_common_sequence_char(data, DATA_SIZE);
+        free(data);
+    }
     printf("%c", result);
 
-    free(data);
     return 0;
 }
