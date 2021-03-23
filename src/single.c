@@ -1,14 +1,11 @@
-//
-// Created by test on 3/21/21.
-//
-
 #include "single.h"
-#include <stdio.h>
 
 #define ALPHABET_LENGTH 26
+#define FIRST_CHAR 'a'
+
 
 struct Node {
-    int val;
+    size_t val;
     struct Node *next;
 };
 
@@ -17,13 +14,42 @@ struct List {
     size_t max;
 };
 
-char find_most_common_sequence_char(const char *data, const size_t data_length) {
-    //Список вида
-    //freq[0] .... freq[ALPHABET_LENGTH - 1]
-    //   |
-    //   3 -> 4 -> 3 -> ... // 'a' встретилась 3 раза, затем 4 раза, затем 3 раза
+void add_list_element(struct List *lst, const size_t length) {
+    if (lst) {
+        if (lst->first == NULL) {
+            lst->first = (struct Node *) malloc(sizeof(struct Node));
+            lst->first->val = length;
+            lst->first->next = NULL;
+            lst->last = lst->first;
+        } else {
+            lst->last->next = (struct Node *) malloc(sizeof(struct Node));
+            lst->last->next->val = length;
+            lst->last->next->next = NULL;
+            lst->last = lst->last->next;
+        }
+    }
+}
 
-    //Инициализация массива
+void list_free(struct List *lst) {
+    if (lst) {
+        for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
+            struct Node *nd = lst[i].first;
+            while (nd != NULL) {
+                struct Node *tmp = nd->next;
+                free(nd);
+                nd = tmp;
+            }
+        }
+        free(lst);
+    }
+}
+
+char find_most_common_sequence_char(const char *data, const size_t data_length) {
+    // Список вида
+    // freq[0] .... freq[ALPHABET_LENGTH - 1]
+    //   |
+    //   3 -> 4 -> 3 -> ... // FIRST_CHAR встретилась 3 раза, затем 4 раза, затем 3 раза
+
     struct List *freq = (struct List *) malloc(sizeof(struct List) * ALPHABET_LENGTH);
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
         struct List temp;
@@ -41,18 +67,7 @@ char find_most_common_sequence_char(const char *data, const size_t data_length) 
         if (data[i] == cur_char) {
             ++length;
         } else {
-            if (freq[cur_char % 'a'].first == NULL) {
-                freq[cur_char % 'a'].first = (struct Node *) malloc(sizeof(struct Node));
-                freq[cur_char % 'a'].first->val = length;
-                freq[cur_char % 'a'].first->next = NULL;
-                freq[cur_char % 'a'].last = freq[cur_char % 'a'].first;
-            } else {
-                freq[cur_char % 'a'].last->next = (struct Node *) malloc(sizeof(struct Node));
-                freq[cur_char % 'a'].last->next->val = length;
-                freq[cur_char % 'a'].last->next->next = NULL;
-                freq[cur_char % 'a'].last = freq[cur_char % 'a'].last->next;
-
-            }
+            add_list_element(&freq[cur_char % FIRST_CHAR], length);
             if (length > max) {
                 max = length;
             }
@@ -61,28 +76,19 @@ char find_most_common_sequence_char(const char *data, const size_t data_length) 
         }
     }
 
-    if (freq[cur_char % 'a'].first == NULL) {
-        freq[cur_char % 'a'].first = (struct Node *) malloc(sizeof(struct Node));
-        freq[cur_char % 'a'].first->val = length;
-        freq[cur_char % 'a'].first->next = NULL;
-        freq[cur_char % 'a'].last = freq[cur_char % 'a'].first;
-    } else {
-        freq[cur_char % 'a'].last->next = (struct Node *) malloc(sizeof(struct Node));
-        freq[cur_char % 'a'].last->next->val = length;
-        freq[cur_char % 'a'].last->next->next = NULL;
-        freq[cur_char % 'a'].last = freq[cur_char % 'a'].last->next;
-    }
-    if (length > freq[cur_char % 'a'].max) {
-        freq[cur_char % 'a'].max = length;
+    add_list_element(&freq[cur_char % FIRST_CHAR], length);
+
+    if (length > freq[cur_char % FIRST_CHAR].max) {
+        freq[cur_char % FIRST_CHAR].max = length;
     }
     if (length > max) {
         max = length;
     }
 
-    size_t *frequencies = (size_t *)calloc(max, sizeof(size_t)); //Частоты
+    size_t *frequencies = (size_t *)calloc(max, sizeof(size_t));
 
     size_t max_freq = 0;
-    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {  //Ищем представителя для каждой длины, получаем разные ответы
+    for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
         struct Node *nd = freq[i].first;
         while (nd != NULL) {
             ++frequencies[nd->val - 1];
@@ -93,20 +99,20 @@ char find_most_common_sequence_char(const char *data, const size_t data_length) 
         }
     }
 
-    ++max_freq; //Из-за сдвига индексов
-
-    printf("Max: %zu\n", max_freq);
+    ++max_freq;  // Из-за сдвига индексов
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-        printf("Letter %c\n", 'a' + i);
         struct Node *nd = freq[i].first;
-        while(nd != NULL) {
-            printf("nd->val: %zu\n", nd->val);
+        while (nd != NULL) {
             if (nd->val == max_freq) {
-                return 'a' + i;
+                list_free(freq);
+                free(frequencies);
+                return FIRST_CHAR + i;
             }
             nd = nd->next;
         }
     }
 
+    list_free(freq);
+    free(frequencies);
     return 0;
 }
