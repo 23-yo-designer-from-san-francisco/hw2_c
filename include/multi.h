@@ -1,12 +1,8 @@
-//
-// Created by test on 3/21/21.
-//
-
-#ifndef HW2_MULTI_H
-#define HW2_MULTI_H
+#ifndef INCLUDE_MULTI_H_
+#define INCLUDE_MULTI_H_
 #include <stdlib.h>
 
-char find_most_common_sequence_char_multi(char *data, size_t data_length);
+char find_most_common_sequence_char(char *data, size_t data_length);
 void *thread(void *vargp);
 
-#endif //HW2_MULTI_H
+#endif  // INCLUDE_MULTI_H_
