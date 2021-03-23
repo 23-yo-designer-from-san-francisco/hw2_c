@@ -57,8 +57,8 @@ add_test(
         COMMAND test_multi
 )
 
-add_executable(test_single test/test_single.cpp src/single.c)
-add_executable(test_multi test/test_multi.cpp src/multi.c)
+add_executable(test_single test/test_single.cpp)
+add_executable(test_multi test/test_multi.cpp)
 target_link_libraries(
         test_single
         libgtest

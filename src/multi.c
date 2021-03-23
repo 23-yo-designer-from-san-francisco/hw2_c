@@ -1,6 +1,7 @@
 #include "multi.h"
 #include <pthread.h>
 #include <sys/sysinfo.h>
+#include <stdbool.h>
 
 #define ALPHABET_LENGTH 26
 #define FIRST_CHAR 'a'
@@ -190,7 +191,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     pl.first = NULL;
     pl.last = NULL;
 
-    _Bool reached_end = 0;
+    bool reached_end = 0;
     while (idle_cpus != 0 && left_idx < data_length && !reached_end) {  // делит на потоки (кол-во ядер)
         right_idx = (data_length - left_idx) / idle_cpus + left_idx;
         if (right_idx < data_length) {
@@ -288,7 +289,9 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
 
     unsigned char res = 255;
     for (size_t i = 0; i < chunks; ++i) {
-        if (max_result <= results[i]->length && results[i]->representatives[max_result] != 0 && results[i]->representatives[max_result] < res) {
+        if (max_result <= results[i]->length
+            && results[i]->representatives[max_result] != 0
+            && results[i]->representatives[max_result] < res) {
             res = results[i]->representatives[max_result];
         }
     }
