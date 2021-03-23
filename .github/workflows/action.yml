@@ -42,7 +42,7 @@ jobs:
         run: valgrind $VALGRIND_OPTS ./hw2_multi
 
       - name: Run Valgrind on target single
-        run: echo \"Available threads: $(nproc)\"
+        run: echo "Available threads $(nproc)"
         run: valgrind $VALGRIND_OPTS ./hw2_single
 
       - name: Single-threaded execution time
