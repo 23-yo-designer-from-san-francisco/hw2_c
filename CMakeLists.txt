@@ -76,7 +76,7 @@ add_executable(hw2_single main.c)
 add_executable(hw2_multi main.c)
 
 find_package(single CONFIG REQUIRED)
-target_link_libraries(hw2_single Single::single)
+target_link_libraries(hw2_single Single::single pthread)
 
 find_package(multi CONFIG REQUIRED)
-target_link_libraries(hw2_multi Multi::multi)
+target_link_libraries(hw2_multi Multi::multi pthread)
