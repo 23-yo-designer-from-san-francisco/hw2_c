@@ -27,13 +27,13 @@ jobs:
         run: cppcheck $CPPCHECK_FILES
 
       - name: Compile libs
-        run: cmake lib/ -DCMAKE_INSTALL_PREFIX=~/install && make -j$(nproc)
+        run: cd lib && cmake . -DCMAKE_INSTALL_PREFIX=~/install && make -j$(nproc)
 
       - name: Install libs
-        run: cmake --build lib/ --target install
+        run: cd lib && cmake --build . --target install
 
       - name: Make project
-        run: cmake . && make -j$(nproc)
+        run: cmake . -Dsingle_DIR=~/install/lib/cmake/Single -Dmulti_DIR=~/install/lib/cmake/Multi && make -j$(nproc)
 
       - name: Run gtest
         run: make test
