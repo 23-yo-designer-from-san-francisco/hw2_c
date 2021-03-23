@@ -7,7 +7,7 @@ set(CMAKE_C_COMPILER "gcc-10")
 
 include_directories(include)
 
-add_compile_options(-Wall -Wpedantic -Werror)
+add_compile_options(-Wall -Wpedantic -Werror -pthread)
 
 add_library(single STATIC include/single.h src/single.c)
 install(TARGETS single EXPORT singleTargets

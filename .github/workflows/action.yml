@@ -17,7 +17,7 @@ jobs:
 
       - name: Update & install packages
         run: |
-         apt update && apt upgrade -y && apt install -y gcc-10 cmake g++-10 build-essential cppcheck valgrind python3 python3-pip libpthread-stubs0-dev
+         apt update && apt upgrade -y && apt install -y gcc-10 cmake g++-10 build-essential cppcheck valgrind python3 python3-pip
          python3 -m pip install cpplint
 
       - name: Run cpplint
