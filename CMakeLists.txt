@@ -43,8 +43,8 @@ include_directories(
         "${source_dir}/googletest/include"
         "${source_dir}/googlemock/include"
 
-        "${PROJECT_SOURCE_DIR}/include"
-        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/lib/include"
+        "${PROJECT_SOURCE_DIR}/lib/src"
 )
 
 add_test(
@@ -71,30 +71,6 @@ target_link_libraries(
         libgmock
         pthread
 )
-
-add_library(single STATIC include/single.h src/single.c)
-install(TARGETS single EXPORT singleTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include
-        )
-install(FILES include/single.h DESTINATION include)
-install(EXPORT singleTargets
-        FILE singleConfig.cmake
-        NAMESPACE Single::
-        DESTINATION lib/cmake/Single)
-
-add_library(multi SHARED include/multi.h src/multi.c)
-install(TARGETS multi EXPORT multiTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include
-        )
-install(FILES include/single.h DESTINATION include)
-install(EXPORT multiTargets
-        FILE multiConfig.cmake
-        NAMESPACE Multi::
-        DESTINATION lib/cmake/Multi)
 
 add_executable(hw2_single main.c)
 add_executable(hw2_multi main.c)

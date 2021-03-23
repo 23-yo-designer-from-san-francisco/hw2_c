@@ -1,0 +1,49 @@
+name: Tests for hw2
+on: [push]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    
+    env:
+      VALGRIND_OPTS: --leak-check=full --track-origins=yes -v
+      CPPLINT_FILTERS: --filter=-build/include_subdir,-readability/casting,-legal/copyright,-build/include_subdir,-whitespace/line_length
+      CPPLINT_FILES: --recursive src/ include/ main.c test/
+      CPPCHECK_FILES: main.c src/ include/ test/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Update & install packages
+        run: |
+         apt update && apt upgrade -y && apt install -y gcc-10 cmake g++-10 build-essential cppcheck valgrind python3 python3-pip
+         python3 -m pip install cpplint
+
+      - name: Run cpplint
+        run: cpplint $CPPLINT_FILTERS $CPPLINT_FILES
+
+      - name: Run cppcheck
+        run: cppcheck $CPPCHECK_FILES
+
+      - name: Compile libs
+        run: cmake lib/ -DCMAKE_INSTALL_PREFIX=~/install && make -j$(nproc)
+
+      - name: Install libs
+        run: cmake --build lib/ --target install
+
+      - name: Make project
+        run: cmake . && make -j$(nproc)
+
+      - name: Run gtest
+        run: make test
+
+      - name: Run Valgrind
+        run: valgrind $VALGRIND_OPTS ./$EXEC_NAME
+
+      - name: Single-threaded execution time
+        run: time ./hw2_single
+
+      - name: Multi-threaded execution time
+        run: time ./hw2_multi
+      
