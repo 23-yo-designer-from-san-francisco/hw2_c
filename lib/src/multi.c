@@ -194,7 +194,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     bool reached_end = 0;
     while (idle_cpus != 0 && left_idx < data_length && !reached_end) {  // делит на потоки (кол-во ядер)
         right_idx = (data_length - left_idx) / idle_cpus + left_idx;
-        if (right_idx < data_length) {
+        if (right_idx > data_length) {
             reached_end = 1;
             right_idx = data_length - 1;
         }
