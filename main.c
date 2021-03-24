@@ -53,17 +53,17 @@ struct File_contents read_file_contents(const char *filename) {
     if (!data) {
         printf("Memory allocation error!\n");
         contents.data = NULL;
+        fclose(fptr);
         return contents;
     }
     if (fread(data, 1, length, fptr) != length) {
         printf("File read error\n");
         free(data);
         contents.data = NULL;
+        fclose(fptr);
         return contents;
     }
-    if (fptr) {
-        fclose(fptr);
-    }
+    fclose(fptr);
 
     contents.length = length;
     contents.data = data;

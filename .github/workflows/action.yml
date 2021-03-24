@@ -8,7 +8,7 @@ jobs:
     env:
       VALGRIND_OPTS: --leak-check=full --track-origins=yes -v
       CPPLINT_FILTERS: --filter=-build/include_subdir,-readability/casting,-legal/copyright,-build/include_subdir,-whitespace/line_length,-runtime/threadsafe_fn,-build/include
-      CPPLINT_FILES: --recursive src/ include/ main.c test/
+      CPPLINT_FILES: --recursive main.c lib/src/ lib/include/ test/
       CPPCHECK_FILES: main.c src/ include/ test/
 
     steps:

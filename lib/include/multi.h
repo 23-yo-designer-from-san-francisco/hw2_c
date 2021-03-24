@@ -1,5 +1,5 @@
-#ifndef INCLUDE_MULTI_H_
-#define INCLUDE_MULTI_H_
+#ifndef LIB_INCLUDE_MULTI_H_
+#define LIB_INCLUDE_MULTI_H_
 #include <stdlib.h>
 
 struct Parcel_node;
@@ -16,4 +16,4 @@ void *thread(void *parcel_node);
 unsigned char find_most_common_sequence_char(const char *data, size_t data_length);
 
 
-#endif  // INCLUDE_MULTI_H_
+#endif  // LIB_INCLUDE_MULTI_H_
