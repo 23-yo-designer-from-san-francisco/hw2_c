@@ -59,10 +59,10 @@ jobs:
         run: ./generator a > stress1.txt
 
       - name: Stress single-threaded
-        run: ./hw2_single $(cat stress1.txt) > result1
+        run: ./hw2_single stress1.txt > result1
 
       - name: Stress multi-threaded
-        run: ./hw2_multi $(cat stress1.txt) > result2
+        run: ./hw2_multi stress1.txt > result2
 
       - name: Compare the result
         run: diff result1 result2 
