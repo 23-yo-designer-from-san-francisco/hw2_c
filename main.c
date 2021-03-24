@@ -37,7 +37,7 @@ char *generate(size_t size) {
 struct File_contents read_file_contents(const char *filename) {
     FILE *fptr;
     char *data;
-    long length;
+    size_t length;
     struct File_contents contents;
 
     fptr = fopen(filename, "rb");
