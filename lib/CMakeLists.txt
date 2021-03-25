@@ -7,9 +7,10 @@ set(CMAKE_C_COMPILER "gcc-10")
 include_directories(include)
 
 add_compile_options(-Wall -Wpedantic -Werror --coverage)
+add_definitions(-fprofile-arcs -ftest-coverage)
 
 add_library(single STATIC include/single.h src/single.c)
-target_link_libraries(single gcov)
+target_link_libraries(single gcov -fprofile-arcs)
 install(TARGETS single EXPORT singleTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -22,7 +23,7 @@ install(EXPORT singleTargets
         DESTINATION lib/cmake/Single)
 
 add_library(multi SHARED include/multi.h src/multi.c)
-target_link_libraries(multi gcov)
+target_link_libraries(multi gcov -fprofile-arcs)
 install(TARGETS multi EXPORT multiTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

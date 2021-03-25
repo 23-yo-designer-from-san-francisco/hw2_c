@@ -79,8 +79,11 @@ target_link_libraries(
 add_executable(hw2_single main.c)
 add_executable(hw2_multi main.c)
 
+add_definitions(-fprofile-arcs -ftest-coverage)
+
 find_package(single CONFIG REQUIRED)
-target_link_libraries(hw2_single Single::single pthread)
+target_link_libraries(hw2_single Single::single pthread -fprofile-arcs)
 
 find_package(multi CONFIG REQUIRED)
-target_link_libraries(hw2_multi Multi::multi pthread)
+target_link_libraries(hw2_multi Multi::multi pthread -fprofile-arcs)
+
