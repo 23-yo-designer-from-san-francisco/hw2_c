@@ -2,61 +2,76 @@
 
 #define ALPHABET_LENGTH 26
 #define FIRST_CHAR 'a'
-#define MALLOC_ERROR 0
+#define MALLOC_ERROR 102
+#define EMPTY_ARG_ERROR 255
+#define CALCULATION_ERROR 254
 
-
-struct Node {
+struct node {
     size_t val;
-    struct Node *next;
+    node *next;
 };
 
-struct List {
-    struct Node *first, *last;
+struct list {
+    node *first, *last;
     size_t max;
 };
 
-void add_list_element(struct List *lst, const size_t length) {
-    if (lst) {
-        if (lst->first == NULL) {
-            lst->first = (struct Node *) malloc(sizeof(struct Node));
-            lst->first->val = length;
-            lst->first->next = NULL;
-            lst->last = lst->first;
-        } else {
-            lst->last->next = (struct Node *) malloc(sizeof(struct Node));
-            lst->last->next->val = length;
-            lst->last->next->next = NULL;
-            lst->last = lst->last->next;
-        }
-    }
-}
-
-void list_free(struct List *lst) {
+void list_free(list *lst) {
     if (lst) {
         for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-            struct Node *nd = lst[i].first;
+            node *nd = lst[i].first;
             while (nd != NULL) {
-                struct Node *tmp = nd->next;
+                node *tmp = nd->next;
                 free(nd);
                 nd = tmp;
             }
         }
         free(lst);
+        return 0;
+    }
+}
+
+int add_list_element(list *lst, const size_t length) {
+    if (lst) {
+        if (lst->first == NULL) {
+            lst->first = (node *) malloc(sizeof(node));
+            if (!lst->first) {
+                return MALLOC_ERROR;
+            }
+            lst->first->val = length;
+            lst->first->next = NULL;
+            lst->last = lst->first;
+        } else {
+            lst->last->next = (node *) malloc(sizeof(node));
+            if (!lst->last->next) {
+                list_free(lst);
+                return MALLOC_ERROR;
+            }
+            lst->last->next->val = length;
+            lst->last->next->next = NULL;
+            lst->last = lst->last->next;
+        }
+        return 0;
+    } else {
+        return EMPTY_ARG_ERROR;
     }
 }
 
 unsigned char find_most_common_sequence_char(const char *data, const size_t data_length) {
+    if (!data) {
+        return EMPTY_ARG_ERROR;
+    }
     // Список вида
     // freq[0] .... freq[ALPHABET_LENGTH - 1]
     //   |
     //   3 -> 4 -> 3 -> ... // FIRST_CHAR встретилась 3 раза, затем 4 раза, затем 3 раза
 
-    struct List *freq_list = (struct List *) malloc(sizeof(struct List) * ALPHABET_LENGTH);
+    list *freq_list = (list *) malloc(sizeof(list) * ALPHABET_LENGTH);
     if (!freq_list) {
         return MALLOC_ERROR;
     }
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-        struct List temp;
+        list temp;
         temp.first = NULL;
         temp.last = NULL;
         temp.max = 0;
@@ -71,7 +86,10 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         if (data[i] == cur_char) {
             ++length;
         } else {
-            add_list_element(&freq_list[cur_char % FIRST_CHAR], length);
+            if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length)) {
+                list_free(freq_list);
+                return CALCULATION_ERROR;
+            }
             if (length > max) {
                 max = length;
             }
@@ -80,7 +98,10 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         }
     }
 
-    add_list_element(&freq_list[cur_char % FIRST_CHAR], length);
+    if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length)) {
+        list_free(freq_list));
+        return CALCULATION_ERROR;
+    }
 
     if (length > freq_list[cur_char % FIRST_CHAR].max) {
         freq_list[cur_char % FIRST_CHAR].max = length;
@@ -97,7 +118,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
 
     size_t max_freq = 0;
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-        struct Node *nd = freq_list[i].first;
+        node *nd = freq_list[i].first;
         while (nd != NULL) {
             ++letter_frequencies[nd->val - 1];
             if (letter_frequencies[nd->val - 1] > letter_frequencies[max_freq]) {
@@ -109,7 +130,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
 
     ++max_freq;  // Из-за сдвига индексов
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-        struct Node *nd = freq_list[i].first;
+        node *nd = freq_list[i].first;
         while (nd != NULL) {
             if (nd->val == max_freq) {
                 list_free(freq_list);

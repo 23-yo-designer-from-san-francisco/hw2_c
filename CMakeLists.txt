@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(hw2 C CXX)
 
+#set(CMAKE_BUILD_TYPE Debug)
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS -lpthread)
 set(CMAKE_C_COMPILER "gcc-10")
 set(CMAKE_CXX_COMPILER "g++-10")
 
-add_compile_options(-Wall -Wpedantic -Werror)
+add_compile_options(-Wall -Wpedantic -Werror --coverage)
 
 enable_testing()
 
@@ -64,12 +66,14 @@ target_link_libraries(
         libgtest
         libgmock
         pthread
+        gcov
 )
 target_link_libraries(
         test_multi
         libgtest
         libgmock
         pthread
+        gcov
 )
 
 add_executable(hw2_single main.c)

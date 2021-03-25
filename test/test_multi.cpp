@@ -4,13 +4,13 @@ extern "C" {
     #include "multi.c"
 }
 
-TEST(struct_List, add_element_and_free) {
-    List *freq_list = new List[ALPHABET_LENGTH];
+TEST(struct_list, add_element_and_free) {
+    list *freq_list = new list[ALPHABET_LENGTH];
     ASSERT_TRUE(freq_list);
     add_list_element(freq_list, 2);
     ASSERT_EQ(freq_list->first->val, (size_t)2);
     list_free(freq_list);
-    auto die = [](List *lst)->size_t { return lst->first->val; };
+    auto die = [](list *lst)->size_t { return lst->first->val; };
     ASSERT_EXIT((die(freq_list), exit(0)), ::testing::KilledBySignal(SIGSEGV), ".*");
 }
 
