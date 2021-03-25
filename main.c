@@ -5,9 +5,11 @@
 
 #include "generator.c"
 
+#define FIRST_CHAR 'a'
 #define DATA_SIZE 104857600  // 100 * 1024 * 1024 = 100 МБ
 #define FILE_READ_ERR 101
 #define MALLOC_ERR 102
+
 
 char find_most_common_sequence_char();
 
@@ -68,8 +70,8 @@ int main(int argc, char** argv) {
         }
         free(f.data);
     } else {
-        char *data = generate(DATA_SIZE, 'a');
-        result = find_most_common_sequence_char(data, DATA_SIZE, 'a');
+        char *data = generate(DATA_SIZE, FIRST_CHAR);
+        result = find_most_common_sequence_char(data, DATA_SIZE, FIRST_CHAR);
         free(data);
     }
     printf("%c", result);
