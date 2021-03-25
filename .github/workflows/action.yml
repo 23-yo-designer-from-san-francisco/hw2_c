@@ -6,10 +6,10 @@ jobs:
     runs-on: self-hosted
     
     env:
-      VALGRIND_OPTS: --leak-check=full --track-origins=yes -v
+      VALGRIND_OPTS: --leak-check=full --track-origins=yes --show-leak-kinds=all
       CPPLINT_FILTERS: --filter=-build/include_subdir,-readability/casting,-legal/copyright,-build/include_subdir,-whitespace/line_length,-runtime/threadsafe_fn,-build/include,-build/header_guard
       CPPLINT_FILES: --recursive main.c lib/src/ lib/include/ test/
-      CPPCHECK_FILES: main.c src/ include/ test/
+      CPPCHECK_FILES: main.c generator.c generate_data.c test/ lib/include lib/src
 
     steps:
       - name: Checkout
@@ -51,7 +51,7 @@ jobs:
         run: time ./hw2_multi
      
       - name: Compile stress data generator
-        run: gcc generator.c -o generator
+        run: gcc generate_data.c -o generator
 
       - name: Generate stress data_1
         run: ./generator a > stress1.txt
