@@ -27,7 +27,6 @@ void list_free(list *lst) {
             }
         }
         free(lst);
-        return 0;
     }
 }
 
@@ -99,7 +98,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     }
 
     if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length)) {
-        list_free(freq_list));
+        list_free(freq_list);
         return CALCULATION_ERROR;
     }
 
