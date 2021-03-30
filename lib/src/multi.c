@@ -22,7 +22,7 @@ typedef struct result {
     size_t length;
 } result;
 
-int thread_result_free(result **res, const size_t chunks) {
+static int thread_result_free(result **res, const size_t chunks) {
     if (res) {
         for (size_t i = 0; i < chunks; ++i) {
             free(res[i]->representatives);
@@ -36,7 +36,7 @@ int thread_result_free(result **res, const size_t chunks) {
     }
 }
 
-void parcel_list_free(parcel_list *pl) {
+static void parcel_list_free(parcel_list *pl) {
     if (pl) {
         parcel_node *temp = pl->first;
         while (temp != NULL) {
@@ -47,7 +47,7 @@ void parcel_list_free(parcel_list *pl) {
     }
 }
 
-void *find_letter_sequences_thread(void *p_node) {
+static void *find_letter_sequences_thread(void *p_node) {
     parcel_node *parcel = (parcel_node *)p_node;
     if (!parcel) {
         pthread_exit(NULL);
@@ -152,7 +152,7 @@ void *find_letter_sequences_thread(void *p_node) {
     pthread_exit((void *)res);
 }
 
-int split_to_cores(parcel_list *pl, const size_t data_length, const char *data) {
+static int split_to_cores(parcel_list *pl, const size_t data_length, const char *data) {
     int idle_cpus = get_nprocs();
     size_t left_idx = 0;
     size_t right_idx;
