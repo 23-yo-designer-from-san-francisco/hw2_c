@@ -5,3 +5,5 @@ Testing
 CMakeCache.txt
 hw2*
 Makefile
+gtest
+
