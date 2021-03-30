@@ -7,7 +7,7 @@ jobs:
     
     env:
       VALGRIND_OPTS: --leak-check=full --track-origins=yes --show-leak-kinds=all
-      CPPLINT_FILTERS: --filter=-build/include_subdir,-readability/casting,-legal/copyright,-build/include_subdir,-whitespace/line_length,-runtime/threadsafe_fn,-build/include,-build/header_guard
+      CPPLINT_FILTERS: --filter=-build/include_subdir,-readability/casting,-legal/copyright,-build/include_subdir,-whitespace/line_length,-runtime/threadsafe_fn,-build/include,-build/header_guard,-runtime/arrays
       CPPLINT_FILES: --recursive main.c lib/src/ lib/include/ test/
       CPPCHECK_FILES: main.c generator.c generate_data.c test/ lib/include lib/src
       CODECOV_TOKEN: 3dabb526-0d9a-4f0a-8de7-f90d4749ce4d

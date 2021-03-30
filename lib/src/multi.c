@@ -4,17 +4,13 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 #include <stdbool.h>
+#include <string.h>
 
 typedef struct parcel_node {
     size_t left;
     size_t right;
     const char *str;
-    struct parcel_node *next;
 } parcel_node;
-
-typedef struct parcel_list {
-    parcel_node *first, *last;
-} parcel_list;
 
 typedef struct result {
     size_t *frequencies;
@@ -29,21 +25,9 @@ static int thread_result_free(result **res, const size_t chunks) {
             free(res[i]->frequencies);
             free(res[i]);
         }
-        free(res);
         return 0;
     } else {
         return EMPTY_ARG_ERROR;
-    }
-}
-
-static void parcel_list_free(parcel_list *pl) {
-    if (pl) {
-        parcel_node *temp = pl->first;
-        while (temp != NULL) {
-            parcel_node *next = temp;
-            temp = temp->next;
-            free(next);
-        }
     }
 }
 
@@ -60,7 +44,6 @@ static void *find_letter_sequences_thread(void *p_node) {
 
     list *freq = (list *) malloc(sizeof(list) * ALPHABET_LENGTH);
     if (!freq) {
-        free(parcel);
         pthread_exit(NULL);
     }
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
@@ -148,16 +131,16 @@ static void *find_letter_sequences_thread(void *p_node) {
     if (list_free(freq, ALPHABET_LENGTH) != 0) {
         pthread_exit(NULL);
     }
-
+    free(p_node);
     pthread_exit((void *)res);
 }
 
-static int split_to_cores(parcel_list *pl, const size_t data_length, const char *data) {
+static int split_to_threads(pthread_t *threads, const size_t data_length, const char *data) {
     int idle_cpus = get_nprocs();
     size_t left_idx = 0;
     size_t right_idx;
     bool reached_end = 0;
-
+    size_t i = 0;
     while (idle_cpus != 0 && left_idx < data_length && !reached_end) {  // делит на потоки (кол-во ядер)
         right_idx = (data_length - left_idx) / idle_cpus + left_idx;
         if (right_idx >= data_length) {
@@ -168,28 +151,14 @@ static int split_to_cores(parcel_list *pl, const size_t data_length, const char 
         while (right_idx + 1 < data_length && data[right_idx + 1] == last_char && !reached_end) {
             ++right_idx;
         }
-        if (pl->first == NULL) {
-            pl->first = (parcel_node *) malloc(sizeof(parcel_node));
-            if (!pl->first) {
-                return MALLOC_ERROR;
-            }
-            pl->first->next = NULL;
-            pl->first->left = left_idx;
-            pl->first->right = right_idx;
-            pl->first->str = data;
-            pl->last = pl->first;
-        } else {
-            pl->last->next = (parcel_node *) malloc(sizeof(parcel_node));
-            if (!pl->last->next) {
-                parcel_list_free(pl);
-                return MALLOC_ERROR;
-            }
-            pl->last = pl->last->next;
-            pl->last->left = left_idx;
-            pl->last->right = right_idx;
-            pl->last->str = data;
-            pl->last->next = NULL;
-        }
+
+        parcel_node *pn = (parcel_node *) malloc(sizeof(parcel_node));
+        pn->left = left_idx;
+        pn->right = right_idx;
+        pn->str = data;
+
+        pthread_create(&threads[i++], NULL, find_letter_sequences_thread, (void *)pn);
+
         left_idx = right_idx + 1;
         --idle_cpus;
     }
@@ -201,33 +170,14 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         return EMPTY_ARG_ERROR;
     }
 
-    parcel_list pl;  // "Посылки" для потоков
-    pl.first = NULL;
-    pl.last = NULL;
-
-    int chunks = split_to_cores(&pl, data_length, data);
+    pthread_t *threads = (pthread_t *)malloc(sizeof(pthread_t) * get_nprocs());
+    int chunks = split_to_threads(threads, data_length, data);
     if (chunks <= 0) {
+        free(threads);
         return SPLIT_ERROR;
     }
 
-    result **results = (result **)malloc(sizeof(result *) * chunks);
-    if (!results) {
-        parcel_list_free(&pl);
-        return CALCULATION_ERROR;
-    }
-    pthread_t *threads = (pthread_t *)malloc(sizeof(pthread_t) * chunks);
-    if (!threads) {
-        parcel_list_free(&pl);
-        free(results);
-        return CALCULATION_ERROR;
-    }
-
-    parcel_node *iter = pl.first;
-    for (int i = 0; i < chunks; ++i) {
-        pthread_create(&threads[i], NULL, find_letter_sequences_thread, (void *)iter);
-        iter = iter->next;
-    }
-
+    result *results[chunks];
     for (int i = 0; i < chunks; ++i) {
         pthread_join(threads[i], (void **) &results[i]);
     }
@@ -235,10 +185,11 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     size_t max_length = 0;
     for (int i = 0; i < chunks; ++i) {
         if (!results[i]) {  // Произошла ошибка в одном из потоков
-            parcel_list_free(&pl);
             if (thread_result_free(results, chunks)) {
+                free(threads);
                 return CALCULATION_ERROR;
             }
+            free(threads);
             return CALCULATION_ERROR;
         }
         if (results[i]->length > max_length) {
@@ -246,15 +197,9 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         }
     }
 
-    size_t *total_occurrencies = (size_t *)calloc(max_length, sizeof(size_t));
-    if (!total_occurrencies) {
-        parcel_list_free(&pl);
-        if (thread_result_free(results, chunks)) {
-            free(threads);
-            return CALCULATION_ERROR;
-        }
-        return CALCULATION_ERROR;
-    }
+    size_t total_occurrencies[max_length];
+    memset(total_occurrencies, 0, max_length * sizeof(size_t));
+
     for (int i = 0; i < chunks; ++i) {
         for (size_t j = 0; j < results[i]->length; ++j) {
             total_occurrencies[j] += results[i]->frequencies[j];
@@ -278,11 +223,10 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     }
 
     if (thread_result_free(results, chunks)) {
+        free(threads);
         return CALCULATION_ERROR;
     }
 
-    parcel_list_free(&pl);
-    free(total_occurrencies);
     free(threads);
 
     return res;

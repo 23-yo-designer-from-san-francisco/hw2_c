@@ -4,6 +4,7 @@ project(hw2 C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_COMPILER "gcc-10")
 set(CMAKE_C_FLAGS "-O2 -march=native -mtune=native")
+set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(include)
 

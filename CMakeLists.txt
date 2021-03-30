@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-O2 -march=native -mtune=native")
 set(CMAKE_C_COMPILER "gcc-10")
 set(CMAKE_CXX_COMPILER "g++-10")
 
-add_compile_options(-Wall -Wpedantic -Werror --coverage)
+add_compile_options(-Wall -Wpedantic -Werror --coverage -Wno-vla)
 
 enable_testing()
 
@@ -62,6 +62,7 @@ add_test(
 
 add_executable(test_single test/test_single.cpp)
 add_executable(test_multi test/test_multi.cpp)
+
 target_link_libraries(
         test_single
         libgtest

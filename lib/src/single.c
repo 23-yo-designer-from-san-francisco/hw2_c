@@ -1,6 +1,8 @@
 #include "single.h"
 #include "common.c"
 
+#include <string.h>
+
 unsigned char find_most_common_sequence_char(const char *data, const size_t data_length) {
     if (!data) {
         return EMPTY_ARG_ERROR;
@@ -54,11 +56,8 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         max = length;
     }
 
-    size_t *letter_frequencies = (size_t *)calloc(max, sizeof(size_t));  // Массив частот
-    if (!letter_frequencies) {
-        list_free(freq_list, ALPHABET_LENGTH);
-        return MALLOC_ERROR;
-    }
+    size_t letter_frequencies[max];
+    memset(letter_frequencies, 0, sizeof(size_t) * max);
 
     size_t max_freq = 0;
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
@@ -78,7 +77,6 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         while (nd != NULL) {
             if (nd->val == max_freq) {
                 list_free(freq_list, ALPHABET_LENGTH);
-                free(letter_frequencies);
                 return FIRST_CHAR + i;
             }
             nd = nd->next;
@@ -86,6 +84,5 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     }
 
     list_free(freq_list, ALPHABET_LENGTH);
-    free(letter_frequencies);
     return 0;
 }
