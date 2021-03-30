@@ -1,62 +1,26 @@
 #include "multi.h"
+#include "common.c"
+
 #include <pthread.h>
 #include <sys/sysinfo.h>
 #include <stdbool.h>
 
-#define ALPHABET_LENGTH 26
-
-#define FIRST_CHAR 'a'
-#define CALCULATION_ERROR 254
-
-#define MALLOC_ERROR -1
-#define EMPTY_ARG_ERROR -2
-#define SPLIT_ERROR -3
-
-struct parcel_node {
+typedef struct parcel_node {
     size_t left;
     size_t right;
     const char *str;
-    parcel_node *next;
-};
+    struct parcel_node *next;
+} parcel_node;
 
-struct parcel_list {
+typedef struct parcel_list {
     parcel_node *first, *last;
-};
+} parcel_list;
 
-struct node {
-    size_t val;
-    node *next;
-};
-
-struct list {
-    node *first, *last;
-    size_t max;
-};
-
-struct result {
+typedef struct result {
     size_t *frequencies;
     char *representatives;
     size_t length;
-};
-
-int list_free(list *lst) {
-    if (lst) {
-        for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-            node *nd;
-            nd = lst[i].first;
-            while (nd != NULL) {
-                node *tmp;
-                tmp = nd->next;
-                free(nd);
-                nd = tmp;
-            }
-        }
-        free(lst);
-        return 0;
-    } else {
-        return EMPTY_ARG_ERROR;
-    }
-}
+} result;
 
 int thread_result_free(result **res, const size_t chunks) {
     if (res) {
@@ -66,35 +30,6 @@ int thread_result_free(result **res, const size_t chunks) {
             free(res[i]);
         }
         free(res);
-        return 0;
-    } else {
-        return EMPTY_ARG_ERROR;
-    }
-}
-
-int add_list_element(list *lst, const size_t length) {
-    if (lst) {
-        if (lst->first == NULL) {
-            lst->first = (node *) malloc(sizeof(node));
-            if (!lst->first) {
-                return MALLOC_ERROR;
-            }
-            lst->first->val = length;
-            lst->first->next = NULL;
-            lst->last = lst->first;
-        } else {
-            lst->last->next = (node *) malloc(sizeof(node));
-            if (!lst->last->next) {
-                int res;
-                if (res = list_free(lst), res != 0) {
-                    return res;
-                }
-                return MALLOC_ERROR;
-            }
-            lst->last->next->val = length;
-            lst->last->next->next = NULL;
-            lst->last = lst->last->next;
-        }
         return 0;
     } else {
         return EMPTY_ARG_ERROR;
@@ -144,7 +79,7 @@ void *find_letter_sequences_thread(void *p_node) {
         if (parcel->str[i] == cur_char) {
             ++length;
         } else {
-            if (add_list_element(&freq[cur_char % FIRST_CHAR], length) != 0) {
+            if (add_list_element(&freq[cur_char % FIRST_CHAR], length, ALPHABET_LENGTH) != 0) {
                 pthread_exit(NULL);
             }
             if (length > max) {
@@ -155,7 +90,7 @@ void *find_letter_sequences_thread(void *p_node) {
         }
     }
 
-    add_list_element(&freq[cur_char % FIRST_CHAR], length);
+    add_list_element(&freq[cur_char % FIRST_CHAR], length, ALPHABET_LENGTH);
 
     if (length > freq[cur_char % FIRST_CHAR].max) {
         freq[cur_char % FIRST_CHAR].max = length;  // максимум ищем сразу
@@ -167,7 +102,7 @@ void *find_letter_sequences_thread(void *p_node) {
     size_t *frequencies = (size_t *)calloc(max, sizeof(size_t));
     if (!frequencies) {
         free(parcel);
-        if (list_free(freq) != 0) {
+        if (list_free(freq, ALPHABET_LENGTH) != 0) {
             pthread_exit(NULL);
         }
         pthread_exit(NULL);
@@ -176,7 +111,7 @@ void *find_letter_sequences_thread(void *p_node) {
     char *representatives = (char*)calloc(max, sizeof(char));  // Представители той или иной длины
     if (!representatives) {
         free(parcel);
-        if (list_free(freq) != 0) {
+        if (list_free(freq, ALPHABET_LENGTH) != 0) {
             pthread_exit(NULL);
         }
         free(frequencies);
@@ -199,7 +134,7 @@ void *find_letter_sequences_thread(void *p_node) {
     result *res = (result *)malloc(sizeof(result));
     if (!res) {
         free(parcel);
-        if (list_free(freq) != 0) {
+        if (list_free(freq, ALPHABET_LENGTH) != 0) {
             pthread_exit(NULL);
         }
         free(frequencies);
@@ -210,7 +145,7 @@ void *find_letter_sequences_thread(void *p_node) {
     res->length = max;
     res->frequencies = frequencies;
 
-    if (list_free(freq) != 0) {
+    if (list_free(freq, ALPHABET_LENGTH) != 0) {
         pthread_exit(NULL);
     }
 
@@ -287,8 +222,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         return CALCULATION_ERROR;
     }
 
-    parcel_node *iter;
-    iter = pl.first;
+    parcel_node *iter = pl.first;
     for (int i = 0; i < chunks; ++i) {
         pthread_create(&threads[i], NULL, find_letter_sequences_thread, (void *)iter);
         iter = iter->next;
@@ -346,6 +280,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
     if (thread_result_free(results, chunks)) {
         return CALCULATION_ERROR;
     }
+
     parcel_list_free(&pl);
     free(total_occurrencies);
     free(threads);

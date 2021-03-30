@@ -4,7 +4,8 @@ project(hw2 C CXX)
 #set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS -lpthread)
+set(CMAKE_C_FLAGS "-lpthread -O2 -march=native -mtune=native")
+set(CMAKE_CXX_FLAGS "-O2 -march=native -mtune=native")
 set(CMAKE_C_COMPILER "gcc-10")
 set(CMAKE_CXX_COMPILER "g++-10")
 

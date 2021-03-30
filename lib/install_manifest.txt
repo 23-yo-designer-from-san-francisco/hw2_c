@@ -1,0 +1,8 @@
+/home/test/install/lib/libsingle.a
+/home/test/install/include/single.h
+/home/test/install/lib/cmake/Single/singleConfig.cmake
+/home/test/install/lib/cmake/Single/singleConfig-noconfig.cmake
+/home/test/install/lib/libmulti.so
+/home/test/install/include/single.h
+/home/test/install/lib/cmake/Multi/multiConfig.cmake
+/home/test/install/lib/cmake/Multi/multiConfig-noconfig.cmake
