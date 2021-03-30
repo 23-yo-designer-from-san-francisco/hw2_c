@@ -64,3 +64,4 @@ int add_list_element(list *lst, const size_t length, const size_t SIZE) {
         return EMPTY_ARG_ERROR;
     }
 }
+
