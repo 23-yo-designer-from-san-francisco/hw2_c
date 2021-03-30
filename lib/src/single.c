@@ -1,60 +1,5 @@
 #include "single.h"
-
-#define ALPHABET_LENGTH 26
-#define FIRST_CHAR 'a'
-#define MALLOC_ERROR 102
-#define EMPTY_ARG_ERROR 255
-#define CALCULATION_ERROR 254
-
-struct node {
-    size_t val;
-    node *next;
-};
-
-struct list {
-    node *first, *last;
-    size_t max;
-};
-
-void list_free(list *lst) {
-    if (lst) {
-        for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
-            node *nd = lst[i].first;
-            while (nd != NULL) {
-                node *tmp = nd->next;
-                free(nd);
-                nd = tmp;
-            }
-        }
-        free(lst);
-    }
-}
-
-int add_list_element(list *lst, const size_t length) {
-    if (lst) {
-        if (lst->first == NULL) {
-            lst->first = (node *) malloc(sizeof(node));
-            if (!lst->first) {
-                return MALLOC_ERROR;
-            }
-            lst->first->val = length;
-            lst->first->next = NULL;
-            lst->last = lst->first;
-        } else {
-            lst->last->next = (node *) malloc(sizeof(node));
-            if (!lst->last->next) {
-                list_free(lst);
-                return MALLOC_ERROR;
-            }
-            lst->last->next->val = length;
-            lst->last->next->next = NULL;
-            lst->last = lst->last->next;
-        }
-        return 0;
-    } else {
-        return EMPTY_ARG_ERROR;
-    }
-}
+#include "common.c"
 
 unsigned char find_most_common_sequence_char(const char *data, const size_t data_length) {
     if (!data) {
@@ -85,8 +30,8 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         if (data[i] == cur_char) {
             ++length;
         } else {
-            if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length)) {
-                list_free(freq_list);
+            if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length, ALPHABET_LENGTH)) {
+                list_free(freq_list, ALPHABET_LENGTH);
                 return CALCULATION_ERROR;
             }
             if (length > max) {
@@ -97,8 +42,8 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         }
     }
 
-    if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length)) {
-        list_free(freq_list);
+    if (add_list_element(&freq_list[cur_char % FIRST_CHAR], length, ALPHABET_LENGTH)) {
+        list_free(freq_list, ALPHABET_LENGTH);
         return CALCULATION_ERROR;
     }
 
@@ -111,7 +56,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
 
     size_t *letter_frequencies = (size_t *)calloc(max, sizeof(size_t));  // Массив частот
     if (!letter_frequencies) {
-        list_free(freq_list);
+        list_free(freq_list, ALPHABET_LENGTH);
         return MALLOC_ERROR;
     }
 
@@ -132,7 +77,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         node *nd = freq_list[i].first;
         while (nd != NULL) {
             if (nd->val == max_freq) {
-                list_free(freq_list);
+                list_free(freq_list, ALPHABET_LENGTH);
                 free(letter_frequencies);
                 return FIRST_CHAR + i;
             }
@@ -140,7 +85,7 @@ unsigned char find_most_common_sequence_char(const char *data, const size_t data
         }
     }
 
-    list_free(freq_list);
+    list_free(freq_list, ALPHABET_LENGTH);
     free(letter_frequencies);
     return 0;
 }
