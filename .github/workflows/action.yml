@@ -18,7 +18,7 @@ jobs:
 
       - name: Update & install packages
         run: |
-         apt update && apt upgrade -y && apt install -y gcc-10 cmake g++-10 build-essential cppcheck valgrind python3 python3-pip
+         apt update && apt upgrade -y && apt install -y gcc-10 cmake g++-10 build-essential cppcheck valgrind python3 python3-pip libpthread-stubs0-dev
          python3 -m pip install cpplint
 
       - name: Run cpplint
@@ -31,7 +31,7 @@ jobs:
         run: cd lib && cmake . -DCMAKE_INSTALL_PREFIX=~/install && make -j$(nproc)
 
       - name: Install libs
-        run: cd lib && cmake --build . --target install
+        run: cd lib && cmake --build . --target install && cp ~/install/lib/*.so ..
 
       - name: Make project
         run: cmake . -Dsingle_DIR=~/install/lib/cmake/Single -Dmulti_DIR=~/install/lib/cmake/Multi && make -j$(nproc)
@@ -39,17 +39,11 @@ jobs:
       - name: Run gtest
         run: make test
 
-      - name: Run Valgrind on target multi
-        run: valgrind $VALGRIND_OPTS ./hw2_multi
+      - name: Run Valgrind
+        run: valgrind $VALGRIND_OPTS ./hw2
 
-      - name: Run Valgrind on target single
-        run: valgrind $VALGRIND_OPTS ./hw2_single
-
-      - name: Single-threaded execution time
-        run: time ./hw2_single
-
-      - name: Multi-threaded execution time
-        run: time ./hw2_multi
+      - name: Stress test with self-generated data
+        run: ./hw2
      
       - name: Compile stress data generator
         run: gcc generate_data.c -o generator
@@ -57,14 +51,14 @@ jobs:
       - name: Generate stress data_1
         run: ./generator a > stress1.txt
 
-      - name: Stress single-threaded
-        run: ./hw2_single stress1.txt > result1
-
-      - name: Stress multi-threaded
-        run: ./hw2_multi stress1.txt > result2
+      - name: Stress test on externally generated data
+        run: ./hw2 stress1.txt > result1
 
       - name: Compare the result
-        run: diff result1 result2 
+        run: |
+          cat result | awk '{if(NR==3) print $0}' > single
+          cat result | awk '{if(NR==4) print $0}' > multi
+          diff single multi
 
       - name: Run Codecov
         run: bash <(curl -s https://codecov.io/bash)

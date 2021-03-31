@@ -9,7 +9,7 @@ TEST(struct_list, add_element_and_free) {
     ASSERT_TRUE(freq_list);
     add_list_element(freq_list, 2, ALPHABET_LENGTH);
     ASSERT_EQ(freq_list->first->val, (size_t)2);
-    list_free(freq_list, ALPHABET_LENGTH);
+    ASSERT_EQ(list_free(freq_list, ALPHABET_LENGTH), 0);
 }
 
 TEST(find_most_common_sequence, seq1) {

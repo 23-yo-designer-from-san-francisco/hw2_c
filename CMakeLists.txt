@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(hw2 C CXX)
 
-#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "-lpthread -O2 -march=native -mtune=native")
-set(CMAKE_CXX_FLAGS "-O2 -march=native -mtune=native")
 set(CMAKE_C_COMPILER "gcc-10")
 set(CMAKE_CXX_COMPILER "g++-10")
 
-add_compile_options(-Wall -Wpedantic -Werror --coverage -Wno-vla)
+set(CMAKE_C_FLAGS "-O0")
+
+
+add_compile_options(-Wall -Wpedantic -Werror -Wno-vla --coverage)
 
 enable_testing()
 
@@ -67,7 +68,6 @@ target_link_libraries(
         test_single
         libgtest
         libgmock
-        pthread
         gcov
 )
 target_link_libraries(
@@ -78,14 +78,9 @@ target_link_libraries(
         gcov
 )
 
-add_executable(hw2_single main.c)
-add_executable(hw2_multi main.c)
-
-add_definitions(-fprofile-arcs -ftest-coverage)
+add_executable(hw2 main.c)
 
 find_package(single CONFIG REQUIRED)
-target_link_libraries(hw2_single Single::single pthread -fprofile-arcs)
+target_link_libraries(hw2 Single::single -fprofile-arcs dl pthread)
 
-find_package(multi CONFIG REQUIRED)
-target_link_libraries(hw2_multi Multi::multi pthread -fprofile-arcs)
 

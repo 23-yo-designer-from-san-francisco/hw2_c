@@ -44,6 +44,7 @@ static void *find_letter_sequences_thread(void *p_node) {
 
     list *freq = (list *) malloc(sizeof(list) * ALPHABET_LENGTH);
     if (!freq) {
+        free(parcel);
         pthread_exit(NULL);
     }
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
@@ -63,6 +64,7 @@ static void *find_letter_sequences_thread(void *p_node) {
             ++length;
         } else {
             if (add_list_element(&freq[cur_char % FIRST_CHAR], length, ALPHABET_LENGTH) != 0) {
+                free(parcel);
                 pthread_exit(NULL);
             }
             if (length > max) {
@@ -82,24 +84,22 @@ static void *find_letter_sequences_thread(void *p_node) {
         max = length;
     }
 
-    size_t *frequencies = (size_t *)calloc(max, sizeof(size_t));
+    size_t *frequencies = (size_t *)malloc(max * sizeof(size_t));
     if (!frequencies) {
         free(parcel);
-        if (list_free(freq, ALPHABET_LENGTH) != 0) {
-            pthread_exit(NULL);
-        }
+        list_free(freq, ALPHABET_LENGTH);
         pthread_exit(NULL);
     }
+    memset(frequencies, 0, max * sizeof(size_t));
 
-    char *representatives = (char*)calloc(max, sizeof(char));  // Представители той или иной длины
+    char *representatives = (char*)malloc(max * sizeof(char) + 1);  // Представители той или иной длины
     if (!representatives) {
         free(parcel);
-        if (list_free(freq, ALPHABET_LENGTH) != 0) {
-            pthread_exit(NULL);
-        }
+        list_free(freq, ALPHABET_LENGTH);
         free(frequencies);
         pthread_exit(NULL);
     }
+    memset(representatives, 0, max * sizeof(char) + 1);
 
     for (size_t i = 0; i < ALPHABET_LENGTH; ++i) {
         node *nd = freq[i].first;
@@ -115,11 +115,10 @@ static void *find_letter_sequences_thread(void *p_node) {
     }
 
     result *res = (result *)malloc(sizeof(result));
+    memset(res, 0, sizeof(result));
     if (!res) {
         free(parcel);
-        if (list_free(freq, ALPHABET_LENGTH) != 0) {
-            pthread_exit(NULL);
-        }
+        list_free(freq, ALPHABET_LENGTH);
         free(frequencies);
         free(representatives);
         pthread_exit(NULL);
@@ -131,7 +130,7 @@ static void *find_letter_sequences_thread(void *p_node) {
     if (list_free(freq, ALPHABET_LENGTH) != 0) {
         pthread_exit(NULL);
     }
-    free(p_node);
+    free(parcel);
     pthread_exit((void *)res);
 }
 
