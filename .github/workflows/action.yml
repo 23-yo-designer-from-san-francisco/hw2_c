@@ -52,7 +52,7 @@ jobs:
         run: ./generator a > stress1.txt
 
       - name: Stress test on externally generated data
-        run: ./hw2 stress1.txt > result1
+        run: ./hw2 stress1.txt > result
 
       - name: Compare the result
         run: |
