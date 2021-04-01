@@ -1,0 +1,12 @@
+cmake-*
+CMakeFiles
+Testing
+*.cmake
+CMakeCache.txt
+hw2*
+Makefile
+gtest
+lib/install_manifest.txt
+lib/*.so
+lib/*.a
+test_*
